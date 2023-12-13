@@ -36,69 +36,69 @@ SELECT *
 FROM products
 WHERE productCode IN (
 SELECT productCode
-    FROM orderdetails
-    WHERE orderNumber IN (
-        SELECT orderNumber
-        FROM orders
-        WHERE year(orderDate) = 2005 AND month(orderDate) = 3
-    )
+	FROM orderdetails
+	WHERE orderNumber IN (
+		SELECT orderNumber
+		FROM orders
+		WHERE year(orderDate) = 2005 AND month(orderDate) = 3
+	)
 )
 
 SELECT DISTINCT productCode
 FROM orderdetails
 WHERE orderNumber IN (
 SELECT orderNumber
-    FROM orders
-    WHERE year(orderDate) = 2005 AND month(orderDate) = 3
+	FROM orders
+	WHERE year(orderDate) = 2005 AND month(orderDate) = 3
 )
 
 2
 SELECT *
 FROM orders
 WHERE month(orderDate) = (
-    SELECT month(MAX(orderDate))
-    FROM orders
+	SELECT month(MAX(orderDate))
+	FROM orders
 )
 AND year(orderDate) = (
-    SELECT year(MAX(orderDate))
-    FROM orders
+	SELECT year(MAX(orderDate))
+	FROM orders
 )
 
 3
 SELECT *, (
 SELECT SUM(quantityOrdered * priceEach)
-    FROM orderdetails
-    WHERE orders.orderNumber = orderdetails.orderNumber
-    GROUP BY orderNumber
+	FROM orderdetails
+	WHERE orders.orderNumber = orderdetails.orderNumber
+	GROUP BY orderNumber
 )
 FROM orders
 
 4
 SELECT customerName, (
 SELECT SUM(amount)
-    FROM payments
-    WHERE customers.customerNumber = payments.customerNumber
-    GROUP BY customerNumber
+	FROM payments
+	WHERE customers.customerNumber = payments.customerNumber
+	GROUP BY customerNumber
 ) as Total_paid, (
 SELECT SUM(quantityOrdered * priceEach)
-    FROM orderdetails
-    WHERE orderNumber IN (
-    SELECT orderNumber
-        FROM orders
-        WHERE orders.customerNumber = customers.customerNumber
-    )
-    GROUP BY customers.customerNumber
+	FROM orderdetails
+	WHERE orderNumber IN (
+	SELECT orderNumber
+		FROM orders
+		WHERE orders.customerNumber = customers.customerNumber
+	)
+	GROUP BY customers.customerNumber
 ) as Total_price, (
-    SELECT Total_price - Total_paid
+	SELECT Total_price - Total_paid
 ) as Total_debt, (
 SELECT SUM(quantityOrdered * priceEach)
-    FROM orderdetails
-    WHERE orderNumber IN (
-    SELECT orderNumber
-        FROM orders
-        WHERE orders.customerNumber = customers.customerNumber AND orders.status = 'Cancelled'
-    )
-    GROUP BY customers.customerNumber
+	FROM orderdetails
+	WHERE orderNumber IN (
+	SELECT orderNumber
+		FROM orders
+		WHERE orders.customerNumber = customers.customerNumber AND orders.status = 'Cancelled'
+	)
+	GROUP BY customers.customerNumber
 ) as Total_cancelled, (
 SELECT Total_debt - IF(Total_cancelled IS null, 0, Total_cancelled)
 ) AS Actual_debt
@@ -107,38 +107,38 @@ HAVING Actual_debt > 0
 
 23/11/2023
 SELECT productLine AS Name, (
-    SELECT SUM(quantityInStock)
-    FROM products
-    WHERE products.productLine = productlines.productLine
+	SELECT SUM(quantityInStock)
+	FROM products
+	WHERE products.productLine = productlines.productLine
 ) AS totalInStock,
 (
-    SELECT SUM(quantityOrdered)
-    FROM orderdetails
-    WHERE productCode IN (
-        SELECT productCode
-        FROM products
-        WHERE productlines.productLine = products.productLine
-    )
+	SELECT SUM(quantityOrdered)
+	FROM orderdetails
+	WHERE productCode IN (
+		SELECT productCode
+		FROM products
+		WHERE productlines.productLine = products.productLine
+	)
 ) AS totalOrdered,
 (
-    SELECT totalInStock + totalOrdered
+	SELECT totalInStock + totalOrdered
 ) AS totalQuantity,
 (
-    SELECT SUM(quantityOrdered)
-    FROM orderdetails
-    WHERE productCode IN (
-        SELECT productCode
-        FROM products
-        WHERE productlines.productLine = products.productLine
-    ) AND orderNumber IN (
-        SELECT orderNumber
-        FROM orders
-        WHERE status = 'Cancelled'
-    )
+	SELECT SUM(quantityOrdered)
+	FROM orderdetails
+	WHERE productCode IN (
+		SELECT productCode
+		FROM products
+		WHERE productlines.productLine = products.productLine
+	) AND orderNumber IN (
+		SELECT orderNumber
+		FROM orders
+		WHERE status = 'Cancelled'
+	)
 ) AS totalCancelled,
 (
-    SELECT SUM(quantityInStock * buyPrice)
-    FROM products
-    WHERE products.productLine = productlines.productLine
+	SELECT SUM(quantityInStock * buyPrice)
+	FROM products
+	WHERE products.productLine = productlines.productLine
 ) as inventoryMoney
 FROM productlines

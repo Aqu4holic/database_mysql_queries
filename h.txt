@@ -1,0 +1,84 @@
+1
+SELECT productlines.*, (
+	 SELECT COUNT(orders.orderNumber)
+	FROM orders
+	WHERE orders.orderNumber IN (
+		SELECT orderdetails.orderNumber
+		FROM orderdetails
+		WHERE orderdetails.productCode IN (
+		  SELECT products.productCode
+			FROM products
+			WHERE products.productLine = productlines.productLine
+		)
+	) AND orders.status = 'Cancelled'
+) AS totalCancelled
+FROM productlines
+ORDER BY totalCancelled DESC
+LIMIT 3
+
+2
+SELECT customers.*, (
+	SELECT SUM(orderdetails.quantityOrdered * orderdetails.priceEach)
+	FROM orderdetails
+	WHERE orderdetails.orderNumber IN (
+		SELECT orders.orderNumber
+		FROM orders
+		WHERE orders.customerNumber = customers.customerNumber
+	)
+) AS totalPurchased, (
+	SELECT SUM(payments.amount)
+	FROM payments
+	WHERE payments.customerNumber = customers.customerNumber
+) AS totalPaid, (
+	SELECT (totalPurchased - totalPaid)
+) AS totalDebt
+FROM customers
+HAVING totalDebt / totalPurchased >= 0.3
+
+3
+SELECT customers.*
+FROM customers
+WHERE customers.customerNumber IN (
+	SELECT orders.customerNumber
+	FROM orders
+	WHERE orders.orderNumber IN (
+		SELECT orderdetails.orderNumber
+		FROM orderdetails
+		WHERE orderdetails.productCode IN (
+			SELECT products.productCode
+			FROM products
+			WHERE SUBSTR(products.productLine, 1, 4) <= 1940
+		)
+	)
+)
+
+3
+SELECT customers.*
+FROM customers
+WHERE customers.customerNumber IN (
+	SELECT orders.customerNumber
+	FROM orders
+	WHERE orders.orderNumber IN (
+		SELECT orderdetails.orderNumber
+		FROM orderdetails
+		WHERE orderdetails.productCode IN (
+			SELECT products.productCode
+			FROM products
+			WHERE SUBSTR(products.productName, 1, 4) <= "1940"
+		)
+	)
+)
+
+4
+SELECT products.productCode, (
+	SELECT SUM(orderdetails.quantityOrdered * (products.MSRP - products.buyPrice))
+	FROM orderdetails
+	WHERE orderdetails.productCode = products.productCode
+) AS Profit1, (
+	SELECT SUM(orderdetails.quantityOrdered * (orderdetails.priceEach - products.buyPrice))
+	FROM orderdetails
+	WHERE orderdetails.productCode = products.productCode
+) AS Profit2, (
+	SELECT Profit1 - Profit2
+) AS Difference
+FROM products
