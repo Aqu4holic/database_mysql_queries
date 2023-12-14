@@ -1,12 +1,12 @@
 1
 SELECT productlines.*, (
-	 SELECT COUNT(orders.orderNumber)
+	SELECT COUNT(orders.orderNumber)
 	FROM orders
 	WHERE orders.orderNumber IN (
 		SELECT orderdetails.orderNumber
 		FROM orderdetails
 		WHERE orderdetails.productCode IN (
-		  SELECT products.productCode
+			SELECT products.productCode
 			FROM products
 			WHERE products.productLine = productlines.productLine
 		)
